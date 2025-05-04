@@ -5,15 +5,40 @@
  * @version 0.2.0.1, Jan 4, 2020
  */
 
-const path = require('path')
-const webpack = require('webpack')
-const MiniCssExtractPlugin = require('mini-css-extract-plugin')
-const {CleanWebpackPlugin} = require('clean-webpack-plugin')
-const CopyPlugin = require('copy-webpack-plugin')
-const TerserPlugin = require('terser-webpack-plugin')
-const BundleAnalyzerPlugin = require(
-    'webpack-bundle-analyzer').BundleAnalyzerPlugin
-const pkg = require('./package.json')
+const path = require("path");
+const webpack = require("webpack");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const { CleanWebpackPlugin } = require("clean-webpack-plugin");
+const CopyPlugin = require("copy-webpack-plugin");
+const TerserPlugin = require("terser-webpack-plugin");
+const BundleAnalyzerPlugin =
+    require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
+const https = require("https");
+const pkg = require("./package.json");
+
+// 获取 VDITOR_JSON 数据的函数
+function getVditorJson() {
+    return new Promise((resolve, reject) => {
+        https
+            .get("https://registry.npmjs.org/vditor/latest", (res) => {
+                let data = "";
+                res.on("data", (chunk) => {
+                    data += chunk;
+                });
+                res.on("end", () => {
+                    try {
+                        const jsonData = JSON.stringify(JSON.parse(data));
+                        resolve(jsonData);
+                    } catch (e) {
+                        reject(e);
+                    }
+                });
+            })
+            .on("error", (e) => {
+                reject(e);
+            });
+    });
+}
 const banner = new webpack.BannerPlugin({
     banner: `Vditor v${pkg.version} - A markdown editor written in TypeScript.
 
@@ -40,131 +65,150 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 `,
     entryOnly: true,
-})
+});
 
-module.exports = [
-    {
-        mode: 'production',
-        output: {
-            filename: '[name].js',
-            path: path.resolve(__dirname, 'dist'),
-            // chunkFilename: '[name].bundle.js',
-            // publicPath: `${pkg.cdn}/vditor@${pkg.version}/dist/`,
-            libraryTarget: 'umd',
-            library: 'Vditor',
-            libraryExport: 'default',
-            globalObject: 'this',
-        },
-        entry: {
-            'index.min': './src/index.ts',
-            'method.min': './src/method.ts',
-            'index': './src/index.ts',
-            'method': './src/method.ts',
-        },
-        optimization: {
-            minimize: true,
-            minimizer: [
-                new TerserPlugin({
-                    include: ['index.min.js', 'method.min.js'],
-                    terserOptions: {
-                        format: {
-                            comments: false,
+// 创建一个异步的webpack配置函数
+module.exports = async () => {
+    // 获取VDITOR_JSON数据
+    let vditorJsonData;
+    try {
+        vditorJsonData = await getVditorJson();
+    } catch (error) {
+        console.error("获取VDITOR_JSON数据失败:", error);
+        // 如果获取失败，使用一个默认值
+        vditorJsonData = JSON.stringify({ version: pkg.version });
+    }
+
+    return [
+        {
+            mode: "production",
+            output: {
+                filename: "[name].js",
+                path: path.resolve(__dirname, "dist"),
+                // chunkFilename: '[name].bundle.js',
+                // publicPath: `${pkg.cdn}/vditor@${pkg.version}/dist/`,
+                libraryTarget: "umd",
+                library: "Vditor",
+                libraryExport: "default",
+                globalObject: "this",
+            },
+            entry: {
+                "index.min": "./src/index.ts",
+                "method.min": "./src/method.ts",
+                index: "./src/index.ts",
+                method: "./src/method.ts",
+            },
+            optimization: {
+                minimize: true,
+                minimizer: [
+                    new TerserPlugin({
+                        include: ["index.min.js", "method.min.js"],
+                        terserOptions: {
+                            format: {
+                                comments: false,
+                            },
+                        },
+                        extractComments: false,
+                    }),
+                ],
+            },
+            resolve: {
+                extensions: [".ts", ".js", ".less", "png"],
+            },
+            module: {
+                rules: [
+                    {
+                        test: /\.png$/,
+                        include: [
+                            path.resolve(__dirname, "./src/assets/images"),
+                        ],
+                        use: ["file-loader"],
+                    },
+                    {
+                        test: /\.js$/,
+                        exclude: "/node_modules/",
+                        use: {
+                            loader: "babel-loader",
+                            options: {
+                                presets: [
+                                    [
+                                        "@babel/env",
+                                        {
+                                            targets: {
+                                                browsers: [
+                                                    "last 2 Chrome major versions",
+                                                    "last 2 Firefox major versions",
+                                                    "last 2 Safari major versions",
+                                                    "last 2 Edge major versions",
+                                                    "last 2 iOS major versions",
+                                                    "last 2 ChromeAndroid major versions",
+                                                ],
+                                            },
+                                        },
+                                    ],
+                                ],
+                            },
                         },
                     },
-                    extractComments: false,
+                    {
+                        test: /\.ts$/,
+                        use: "ts-loader",
+                    },
+                    {
+                        test: /\.less$/,
+                        include: [path.resolve(__dirname, "src/assets")],
+                        use: [
+                            MiniCssExtractPlugin.loader,
+                            {
+                                loader: "css-loader", // translates CSS into CommonJS
+                                options: {
+                                    url: false,
+                                },
+                            },
+                            {
+                                loader: "postcss-loader",
+                                options: {
+                                    postcssOptions: {
+                                        plugins: [
+                                            [
+                                                "autoprefixer",
+                                                { grid: true, remove: false },
+                                            ],
+                                        ],
+                                    },
+                                },
+                            },
+                            {
+                                loader: "less-loader", // compiles Less to CSS
+                            },
+                        ],
+                    },
+                ],
+            },
+            plugins: [
+                // new BundleAnalyzerPlugin(),
+                new CleanWebpackPlugin({
+                    cleanOnceBeforeBuildPatterns: [
+                        path.join(__dirname, "dist"),
+                    ],
+                }),
+                new webpack.DefinePlugin({
+                    VDITOR_VERSION: JSON.stringify(pkg.version),
+                    VDITOR_JSON: vditorJsonData,
+                }),
+                new MiniCssExtractPlugin({
+                    filename: "index.css",
+                }),
+                banner,
+                new CopyPlugin({
+                    patterns: [
+                        { from: "src/css", to: "css" },
+                        { from: "src/images", to: "images" },
+                        { from: "src/js", to: "js" },
+                        { from: "types", to: "types" },
+                    ],
                 }),
             ],
         },
-        resolve: {
-            extensions: ['.ts', '.js', '.less', 'png'],
-        },
-        module: {
-            rules: [
-                {
-                    test: /\.png$/,
-                    include: [path.resolve(__dirname, './src/assets/images')],
-                    use: [
-                        'file-loader',
-                    ],
-                },
-                {
-                    test: /\.js$/,
-                    exclude: '/node_modules/',
-                    use: {
-                        loader: 'babel-loader',
-                        options: {
-                            presets: [
-                                [
-                                    '@babel/env',
-                                    {
-                                        targets: {
-                                            browsers: [
-                                                'last 2 Chrome major versions',
-                                                'last 2 Firefox major versions',
-                                                'last 2 Safari major versions',
-                                                'last 2 Edge major versions',
-                                                'last 2 iOS major versions',
-                                                'last 2 ChromeAndroid major versions',
-                                            ],
-                                        },
-                                    },
-                                ],
-                            ],
-                        },
-                    },
-                },
-                {
-                    test: /\.ts$/,
-                    use: 'ts-loader',
-                },
-                {
-                    test: /\.less$/,
-                    include: [path.resolve(__dirname, 'src/assets')],
-                    use: [
-                        MiniCssExtractPlugin.loader,
-                        {
-                            loader: 'css-loader', // translates CSS into CommonJS
-                            options: {
-                                url: false,
-                            },
-                        },
-                        {
-                            loader: 'postcss-loader',
-                            options: {
-                                postcssOptions: {
-                                    plugins: [
-                                        ['autoprefixer', {grid: true, remove: false}],
-                                    ],
-                                },
-                            },
-                        },
-                        {
-                            loader: 'less-loader', // compiles Less to CSS
-                        },
-                    ],
-                },
-            ],
-        },
-        plugins: [
-            // new BundleAnalyzerPlugin(),
-            new CleanWebpackPlugin({
-                cleanOnceBeforeBuildPatterns: [
-                    path.join(__dirname, 'dist')],
-            }),
-            new webpack.DefinePlugin({
-                VDITOR_VERSION: JSON.stringify(pkg.version),
-            }),
-            new MiniCssExtractPlugin({
-                filename: 'index.css',
-            }),
-            banner,
-            new CopyPlugin({
-                patterns: [
-                    {from: 'src/css', to: 'css'},
-                    {from: 'src/images', to: 'images'},
-                    {from: 'src/js', to: 'js'},
-                    {from: 'types', to: 'types'},
-                ],
-            }),
-        ],
-    }]
+    ];
+};
