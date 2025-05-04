@@ -783,6 +783,9 @@ interface IOptions {
 
     /** 编辑器中未选中文字后触发 */
     unSelect?(): void;
+
+    /** 自定义的是否正在输入中函数 */
+    isComposing?: () => boolean;
 }
 
 interface IEChart {

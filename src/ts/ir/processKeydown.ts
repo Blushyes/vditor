@@ -38,10 +38,11 @@ import { expandMarker } from "./expandMarker";
 import { processAfterRender, processHeading } from "./process";
 
 export const processKeydown = (vditor: IVditor, event: KeyboardEvent) => {
-    vditor.ir.composingLock = event.isComposing;
+    const isComposing = vditor.options.isComposing?.() ?? event.isComposing;
+    vditor.ir.composingLock = isComposing;
 
     // 修复中文输入法输入过程中按回车会错误触发回车事件的问题
-    if (event.isComposing || vditor.ir.composingLock) {
+    if (isComposing || vditor.ir.composingLock) {
         // 在输入法组合输入过程中，阻止所有键盘事件的处理
         event.preventDefault();
         return false;

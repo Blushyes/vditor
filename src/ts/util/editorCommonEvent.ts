@@ -114,7 +114,9 @@ export const scrollCenter = (vditor: IVditor) => {
 
 export const hotkeyEvent = (vditor: IVditor, editorElement: HTMLElement) => {
     editorElement.addEventListener("keydown", (event: KeyboardEvent & { target: HTMLElement }) => {
-        if (!event.isComposing && vditor.options.keydown) {
+        const isComposing = vditor.options.isComposing?.() ?? event.isComposing;
+
+        if (!isComposing && vditor.options.keydown) {
             vditor.options.keydown(event);
         }
         // hint: 上下选择
@@ -130,10 +132,12 @@ export const hotkeyEvent = (vditor: IVditor, editorElement: HTMLElement) => {
         }
 
         if (vditor.currentMode === "sv") {
+            // TODO isComposing
             if (mdProcessKeydown(vditor, event)) {
                 return;
             }
         } else if (vditor.currentMode === "wysiwyg") {
+            // TODO isComposing
             if (processKeydown(vditor, event)) {
                 return;
             }
@@ -167,7 +171,7 @@ export const hotkeyEvent = (vditor: IVditor, editorElement: HTMLElement) => {
         if (event.key === "Escape") {
             if (vditor.hint.element.style.display === "block") {
                 vditor.hint.element.style.display = "none";
-            } else if (vditor.options.esc && !event.isComposing) {
+            } else if (vditor.options.esc && !isComposing) {
                 vditor.options.esc(getMarkdown(vditor));
             }
             event.preventDefault();
