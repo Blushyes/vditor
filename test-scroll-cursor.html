@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vditor 滚动和光标测试</title>
+    <link rel="stylesheet" href="dist/index.css" />
+    <script src="dist/index.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .btn-group {
+            margin: 20px 0;
+        }
+        button {
+            padding: 8px 16px;
+            margin-right: 10px;
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #3367d6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Vditor 滚动和光标测试</h1>
+        <div id="vditor"></div>
+        <div class="btn-group">
+            <button id="scrollToBottom">滚动到底部</button>
+            <button id="moveCursorToEnd">光标移动到最后</button>
+            <button id="addContent">添加内容</button>
+        </div>
+    </div>
+
+    <script>
+        // 初始化编辑器
+        const vditor = new Vditor('vditor', {
+            height: 400,
+            value: '# Vditor 测试\n\n这是一个测试文档。\n\n## 第二标题\n\n更多内容...\n\n',
+            placeholder: '请输入内容...',
+            theme: 'classic',
+            mode: 'ir',
+            toolbar: [
+                'headings', 'bold', 'italic', 'strike', '|',
+                'line', 'quote', 'list', 'ordered-list', 'check', '|',
+                'code', 'inline-code', 'undo', 'redo', '|',
+                'edit-mode', 'fullscreen'
+            ],
+            after: () => {
+                console.log('编辑器初始化完成');
+            }
+        });
+
+        // 添加按钮事件监听
+        document.getElementById('scrollToBottom').addEventListener('click', () => {
+            vditor.scrollToBottom();
+            console.log('滚动到底部');
+        });
+
+        document.getElementById('moveCursorToEnd').addEventListener('click', () => {
+            vditor.moveCursorToEnd();
+            console.log('光标移动到最后');
+        });
+
+        document.getElementById('addContent').addEventListener('click', () => {
+            const content = '\n\n这是新添加的内容 ' + new Date().toLocaleTimeString() + '\n\n';
+            vditor.insertValue(content);
+            console.log('添加内容');
+        });
+    </script>
+</body>
+</html>

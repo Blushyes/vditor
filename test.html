@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+    <title>Vditor Task List Test</title>
+    <link rel="stylesheet" href="dist/index.css"/>
+    <script src="dist/index.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+        }
+        .test-section {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        h2 {
+            margin-top: 0;
+        }
+        .instructions {
+            margin-bottom: 10px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+<h1>Vditor 任务列表测试</h1>
+
+<div class="test-section">
+    <h2>测试1：任务列表自动识别</h2>
+    <div class="instructions">
+        <p>请尝试以下操作：</p>
+        <ol>
+            <li>输入 <code>[]</code> 然后按空格，应该会自动转换为未选中的任务列表</li>
+            <li>输入 <code>[x]</code> 然后按空格，应该会自动转换为已选中的任务列表</li>
+            <li>在任务列表前输入文字，然后在文字前输入 <code>[]</code> 并按空格，应该会保留后面的文字</li>
+        </ol>
+    </div>
+    <div id="vditor1"></div>
+</div>
+
+<div class="test-section">
+    <h2>测试2：中文输入法测试</h2>
+    <div class="instructions">
+        <p>请尝试以下操作：</p>
+        <ol>
+            <li>使用中文输入法输入文字，在输入过程中按回车，应该不会触发回车事件</li>
+            <li>完成中文输入后再按回车，应该正常换行</li>
+        </ol>
+    </div>
+    <div id="vditor2"></div>
+</div>
+
+<script>
+    const vditor1 = new Vditor('vditor1', {
+        height: 300,
+        mode: 'ir',
+        placeholder: '在这里输入 [] 或 [x] 然后按空格...',
+        after: () => {
+            console.log('Vditor1 初始化完成');
+        }
+    });
+
+    const vditor2 = new Vditor('vditor2', {
+        height: 300,
+        mode: 'ir',
+        placeholder: '在这里使用中文输入法输入文字，测试回车键...',
+        after: () => {
+            console.log('Vditor2 初始化完成');
+        }
+    });
+</script>
+</body>
+</html>

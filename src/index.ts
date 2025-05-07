@@ -1,42 +1,52 @@
 import "./assets/less/index.less";
 import VditorMethod from "./method";
-import {Constants, VDITOR_VERSION} from "./ts/constants";
-import {DevTools} from "./ts/devtools/index";
-import {Hint} from "./ts/hint/index";
-import {IR} from "./ts/ir/index";
-import {input as irInput} from "./ts/ir/input";
-import {processAfterRender} from "./ts/ir/process";
-import {getHTML} from "./ts/markdown/getHTML";
-import {getMarkdown} from "./ts/markdown/getMarkdown";
-import {setLute} from "./ts/markdown/setLute";
-import {Outline} from "./ts/outline/index";
-import {Preview} from "./ts/preview/index";
-import {Resize} from "./ts/resize/index";
-import {Editor} from "./ts/sv/index";
-import {inputEvent} from "./ts/sv/inputEvent";
-import {processAfterRender as processSVAfterRender, processPaste} from "./ts/sv/process";
-import {Tip} from "./ts/tip/index";
-import {Toolbar} from "./ts/toolbar/index";
-import {disableToolbar, hidePanel} from "./ts/toolbar/setToolbar";
-import {enableToolbar} from "./ts/toolbar/setToolbar";
-import {initUI, UIUnbindListener} from "./ts/ui/initUI";
-import {setCodeTheme} from "./ts/ui/setCodeTheme";
-import {setContentTheme} from "./ts/ui/setContentTheme";
-import {setPreviewMode} from "./ts/ui/setPreviewMode";
-import {setTheme} from "./ts/ui/setTheme";
-import {Undo} from "./ts/undo/index";
-import {Upload} from "./ts/upload/index";
-import {addScript, addScriptSync} from "./ts/util/addScript";
-import {getSelectText} from "./ts/util/getSelectText";
-import {Options} from "./ts/util/Options";
-import {processCodeRender} from "./ts/util/processCode";
-import {getCursorPosition, getEditorRange, insertHTML} from "./ts/util/selection";
-import {afterRenderEvent} from "./ts/wysiwyg/afterRenderEvent";
-import {WYSIWYG} from "./ts/wysiwyg/index";
-import {input} from "./ts/wysiwyg/input";
-import {renderDomByMd} from "./ts/wysiwyg/renderDomByMd";
-import {execAfterRender, insertEmptyBlock} from "./ts/util/fixBrowserBehavior";
-import {accessLocalStorage} from "./ts/util/compatibility";
+import { Constants, VDITOR_VERSION } from "./ts/constants";
+import { DevTools } from "./ts/devtools/index";
+import { Hint } from "./ts/hint/index";
+import { IR } from "./ts/ir/index";
+import { input as irInput } from "./ts/ir/input";
+import { processAfterRender } from "./ts/ir/process";
+import { getHTML } from "./ts/markdown/getHTML";
+import { getMarkdown } from "./ts/markdown/getMarkdown";
+import { setLute } from "./ts/markdown/setLute";
+import { Outline } from "./ts/outline/index";
+import { Preview } from "./ts/preview/index";
+import { Resize } from "./ts/resize/index";
+import { Editor } from "./ts/sv/index";
+import { inputEvent } from "./ts/sv/inputEvent";
+import {
+    processAfterRender as processSVAfterRender,
+    processPaste,
+} from "./ts/sv/process";
+import { Tip } from "./ts/tip/index";
+import { Toolbar } from "./ts/toolbar/index";
+import { disableToolbar, hidePanel } from "./ts/toolbar/setToolbar";
+import { enableToolbar } from "./ts/toolbar/setToolbar";
+import { initUI, UIUnbindListener } from "./ts/ui/initUI";
+import { setCodeTheme } from "./ts/ui/setCodeTheme";
+import { setContentTheme } from "./ts/ui/setContentTheme";
+import { setPreviewMode } from "./ts/ui/setPreviewMode";
+import { setTheme } from "./ts/ui/setTheme";
+import { Undo } from "./ts/undo/index";
+import { Upload } from "./ts/upload/index";
+import { addScript, addScriptSync } from "./ts/util/addScript";
+import { getSelectText } from "./ts/util/getSelectText";
+import { Options } from "./ts/util/Options";
+import { processCodeRender } from "./ts/util/processCode";
+import {
+    getCursorPosition,
+    getEditorRange,
+    insertHTML,
+} from "./ts/util/selection";
+import { afterRenderEvent } from "./ts/wysiwyg/afterRenderEvent";
+import { WYSIWYG } from "./ts/wysiwyg/index";
+import { input } from "./ts/wysiwyg/input";
+import { renderDomByMd } from "./ts/wysiwyg/renderDomByMd";
+import {
+    execAfterRender,
+    insertEmptyBlock,
+} from "./ts/util/fixBrowserBehavior";
+import { accessLocalStorage } from "./ts/util/compatibility";
 
 class Vditor extends VditorMethod {
     public readonly version: string;
@@ -58,7 +68,7 @@ class Vditor extends VditorMethod {
                     },
                 };
             } else if (!options.cache) {
-                options.cache = {id: `vditor${id}`};
+                options.cache = { id: `vditor${id}` };
             } else if (!options.cache.id) {
                 options.cache.id = `vditor${id}`;
             }
@@ -74,23 +84,44 @@ class Vditor extends VditorMethod {
 
         // 支持自定义国际化
         if (!mergedOptions.i18n) {
-            if (!["en_US", "fr_FR", "pt_BR", "ja_JP", "ko_KR", "ru_RU", "sv_SE", "zh_CN", "zh_TW"].includes(mergedOptions.lang)) {
+            if (
+                ![
+                    "en_US",
+                    "fr_FR",
+                    "pt_BR",
+                    "ja_JP",
+                    "ko_KR",
+                    "ru_RU",
+                    "sv_SE",
+                    "zh_CN",
+                    "zh_TW",
+                ].includes(mergedOptions.lang)
+            ) {
                 throw new Error(
-                    "options.lang error, see https://ld246.com/article/1549638745630#options",
+                    "options.lang error, see https://ld246.com/article/1549638745630#options"
                 );
             } else {
                 const i18nScriptPrefix = "vditorI18nScript";
                 const i18nScriptID = i18nScriptPrefix + mergedOptions.lang;
-                document.querySelectorAll(`head script[id^="${i18nScriptPrefix}"]`).forEach((el) => {
-                    if (el.id !== i18nScriptID) {
-                        document.head.removeChild(el);
-                    }
-                });
-                addScript(`${mergedOptions.cdn}/dist/js/i18n/${mergedOptions.lang}.js`, i18nScriptID).then(() => {
-                    this.init(id as HTMLElement, mergedOptions);
-                }).catch(error => {
-                    this.showErrorTip(`GET ${mergedOptions.cdn}/dist/js/i18n/${mergedOptions.lang}.js net::ERR_ABORTED 404 (Not Found)`);
-                });
+                document
+                    .querySelectorAll(`head script[id^="${i18nScriptPrefix}"]`)
+                    .forEach((el) => {
+                        if (el.id !== i18nScriptID) {
+                            document.head.removeChild(el);
+                        }
+                    });
+                addScript(
+                    `${mergedOptions.cdn}/dist/js/i18n/${mergedOptions.lang}.js`,
+                    i18nScriptID
+                )
+                    .then(() => {
+                        this.init(id as HTMLElement, mergedOptions);
+                    })
+                    .catch((error) => {
+                        this.showErrorTip(
+                            `GET ${mergedOptions.cdn}/dist/js/i18n/${mergedOptions.lang}.js net::ERR_ABORTED 404 (Not Found)`
+                        );
+                    });
             }
         } else {
             window.VditorI18n = mergedOptions.i18n;
@@ -101,7 +132,7 @@ class Vditor extends VditorMethod {
     private showErrorTip(error: string) {
         const tip = new Tip();
         document.body.appendChild(tip.element);
-        tip.show(error, 0)
+        tip.show(error, 0);
     }
 
     public updateToolbarConfig(options: IToolbarConfig) {
@@ -113,13 +144,16 @@ class Vditor extends VditorMethod {
         theme: "dark" | "classic",
         contentTheme?: string,
         codeTheme?: string,
-        contentThemePath?: string,
+        contentThemePath?: string
     ) {
         this.vditor.options.theme = theme;
         setTheme(this.vditor);
         if (contentTheme) {
             this.vditor.options.preview.theme.current = contentTheme;
-            setContentTheme(contentTheme, contentThemePath || this.vditor.options.preview.theme.path);
+            setContentTheme(
+                contentTheme,
+                contentThemePath || this.vditor.options.preview.theme.path
+            );
         }
         if (codeTheme) {
             this.vditor.options.preview.hljs.style = codeTheme;
@@ -164,11 +198,16 @@ class Vditor extends VditorMethod {
         hidePanel(this.vditor, ["subToolbar", "hint", "popover"]);
         disableToolbar(
             this.vditor.toolbar.elements,
-            Constants.EDIT_TOOLBARS.concat(["undo", "redo", "fullscreen", "edit-mode"]),
+            Constants.EDIT_TOOLBARS.concat([
+                "undo",
+                "redo",
+                "fullscreen",
+                "edit-mode",
+            ])
         );
         this.vditor[this.vditor.currentMode].element.setAttribute(
             "contenteditable",
-            "false",
+            "false"
         );
     }
 
@@ -176,10 +215,18 @@ class Vditor extends VditorMethod {
     public enable() {
         enableToolbar(
             this.vditor.toolbar.elements,
-            Constants.EDIT_TOOLBARS.concat(["undo", "redo", "fullscreen", "edit-mode"]),
+            Constants.EDIT_TOOLBARS.concat([
+                "undo",
+                "redo",
+                "fullscreen",
+                "edit-mode",
+            ])
         );
         this.vditor.undo.resetIcon(this.vditor);
-        this.vditor[this.vditor.currentMode].element.setAttribute("contenteditable", "true");
+        this.vditor[this.vditor.currentMode].element.setAttribute(
+            "contenteditable",
+            "true"
+        );
     }
 
     /** 返回选中的字符串 */
@@ -224,7 +271,7 @@ class Vditor extends VditorMethod {
     public enableCache() {
         if (!this.vditor.options.cache.id) {
             throw new Error(
-                "need options.cache.id, see https://ld246.com/article/1549638745630#options",
+                "need options.cache.id, see https://ld246.com/article/1549638745630#options"
             );
         }
         this.vditor.options.cache.enable = true;
@@ -326,7 +373,8 @@ class Vditor extends VditorMethod {
                 enableInput: false,
             });
         } else {
-            this.vditor.ir.element.innerHTML = this.vditor.lute.Md2VditorIRDOM(markdown);
+            this.vditor.ir.element.innerHTML =
+                this.vditor.lute.Md2VditorIRDOM(markdown);
             this.vditor.ir.element
                 .querySelectorAll(".vditor-ir__preview[data-render='2']")
                 .forEach((item: HTMLElement) => {
@@ -369,7 +417,7 @@ class Vditor extends VditorMethod {
         this.vditor.element.innerHTML = this.vditor.originalInnerHTML;
         this.vditor.element.classList.remove("vditor");
         this.vditor.element.removeAttribute("style");
-        const iconScript = document.getElementById("vditorIconScript")
+        const iconScript = document.getElementById("vditorIconScript");
         if (iconScript) {
             iconScript.remove();
         }
@@ -483,6 +531,47 @@ class Vditor extends VditorMethod {
         });
     }
 
+    /** 滚动到编辑器底部 */
+    public scrollToBottom() {
+        const editorElement = this.vditor[this.vditor.currentMode].element;
+        editorElement.scrollTop = editorElement.scrollHeight;
+    }
+
+    /** 将光标移动到编辑器内容的最后 */
+    public moveCursorToEnd() {
+        const editorElement = this.vditor[this.vditor.currentMode].element;
+        const range = document.createRange();
+        const selection = window.getSelection();
+
+        // 确保编辑器有内容
+        if (editorElement.childNodes.length > 0) {
+            const lastChild = editorElement.lastChild;
+
+            // 如果最后一个节点是文本节点
+            if (lastChild.nodeType === Node.TEXT_NODE) {
+                range.setStart(lastChild, lastChild.textContent.length);
+                range.setEnd(lastChild, lastChild.textContent.length);
+            } else {
+                // 如果是元素节点，尝试移动到其最后
+                range.selectNodeContents(lastChild);
+                range.collapse(false);
+            }
+        } else {
+            // 如果编辑器为空，则将光标放在开始位置
+            range.setStart(editorElement, 0);
+            range.setEnd(editorElement, 0);
+        }
+
+        selection.removeAllRanges();
+        selection.addRange(range);
+
+        // 聚焦编辑器
+        this.focus();
+
+        // 滚动到底部确保光标可见
+        this.scrollToBottom();
+    }
+
     private init(id: HTMLElement, mergedOptions: IOptions) {
         this.vditor = {
             currentMode: mergedOptions.mode,
@@ -515,14 +604,14 @@ class Vditor extends VditorMethod {
 
         addScript(
             mergedOptions._lutePath ||
-            `${mergedOptions.cdn}/dist/js/lute/lute.min.js`,
-            "vditorLuteScript",
+                `${mergedOptions.cdn}/dist/js/lute/lute.min.js`,
+            "vditorLuteScript"
         ).then(() => {
             this.vditor.lute = setLute({
                 autoSpace: this.vditor.options.preview.markdown.autoSpace,
                 gfmAutoLink: this.vditor.options.preview.markdown.gfmAutoLink,
-                codeBlockPreview: this.vditor.options.preview.markdown
-                    .codeBlockPreview,
+                codeBlockPreview:
+                    this.vditor.options.preview.markdown.codeBlockPreview,
                 emojiSite: this.vditor.options.hint.emojiPath,
                 emojis: this.vditor.options.hint.emoji,
                 fixTermTypo: this.vditor.options.preview.markdown.fixTermTypo,
@@ -533,10 +622,11 @@ class Vditor extends VditorMethod {
                 linkPrefix: this.vditor.options.preview.markdown.linkPrefix,
                 listStyle: this.vditor.options.preview.markdown.listStyle,
                 mark: this.vditor.options.preview.markdown.mark,
-                mathBlockPreview: this.vditor.options.preview.markdown
-                    .mathBlockPreview,
-                paragraphBeginningSpace: this.vditor.options.preview.markdown
-                    .paragraphBeginningSpace,
+                mathBlockPreview:
+                    this.vditor.options.preview.markdown.mathBlockPreview,
+                paragraphBeginningSpace:
+                    this.vditor.options.preview.markdown
+                        .paragraphBeginningSpace,
                 sanitize: this.vditor.options.preview.markdown.sanitize,
                 toc: this.vditor.options.preview.markdown.toc,
             });
@@ -550,7 +640,10 @@ class Vditor extends VditorMethod {
             }
             if (mergedOptions.icon) {
                 // 防止初始化 2 个编辑器时加载 2 次
-                addScriptSync(`${mergedOptions.cdn}/dist/js/icons/${mergedOptions.icon}.js`, "vditorIconScript");
+                addScriptSync(
+                    `${mergedOptions.cdn}/dist/js/icons/${mergedOptions.icon}.js`,
+                    "vditorIconScript"
+                );
             }
         });
     }
