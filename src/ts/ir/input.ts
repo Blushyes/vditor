@@ -80,6 +80,10 @@ export const input = (
             currentLine === "【x】 " ||
             currentLine === "【X】 ";
 
+        // 检查是否在行首输入了有序列表格式 "1. " 或无序列表格式 "- "
+        const isOrderedListPattern = currentLine === "1. ";
+        const isUnorderedListPattern = currentLine === "- ";
+
         // 结尾可以输入空格
         let endSpace = true;
         for (
@@ -94,6 +98,124 @@ export const input = (
                 endSpace = false;
                 break;
             }
+        }
+
+        // 处理有序列表格式 "1. "
+        if (isOrderedListPattern) {
+            // 如果是行首输入的有序列表格式，保存当前行中有序列表格式后面的文本
+            const lineContent = blockElement.textContent;
+            const lineEnd =
+                lineContent.indexOf("\n", lineStart) > -1
+                    ? lineContent.indexOf("\n", lineStart)
+                    : lineContent.length;
+
+            // 获取当前行中列表标记后面的文本内容
+            const currentLineText = lineContent.substring(lineStart, lineEnd);
+            const remainingText = currentLineText.substring(3); // 移除 "1. " 部分
+
+            // 清除当前行，准备转换为有序列表
+            const beforeLine =
+                lineStart > 0 ? lineContent.substring(0, lineStart) : "";
+            const afterLine =
+                lineEnd < lineContent.length
+                    ? lineContent.substring(lineEnd)
+                    : "";
+            blockElement.textContent = beforeLine + afterLine;
+
+            // 创建有序列表
+            const olElement = document.createElement("ol");
+            olElement.setAttribute("data-block", "0");
+
+            // 创建列表项
+            const liElement = document.createElement("li");
+
+            // 插入一个标记，以便在转换后定位光标
+            liElement.appendChild(document.createElement("wbr"));
+
+            // 添加原有文本到列表项
+            if (remainingText) {
+                liElement.appendChild(document.createTextNode(remainingText));
+            }
+
+            // 添加列表项到有序列表
+            olElement.appendChild(liElement);
+
+            // 添加有序列表到当前块的前面
+            blockElement.insertAdjacentElement("beforebegin", olElement);
+
+            // 删除原始块
+            blockElement.remove();
+
+            // 设置光标位置
+            setRangeByWbr(vditor.ir.element, range);
+
+            // 处理渲染后的事件
+            processAfterRender(vditor, {
+                enableAddUndoStack: true,
+                enableHint: true,
+                enableInput: true,
+            });
+
+            return;
+        }
+
+        // 处理无序列表格式 "- "
+        if (isUnorderedListPattern) {
+            // 如果是行首输入的无序列表格式，保存当前行中无序列表格式后面的文本
+            const lineContent = blockElement.textContent;
+            const lineEnd =
+                lineContent.indexOf("\n", lineStart) > -1
+                    ? lineContent.indexOf("\n", lineStart)
+                    : lineContent.length;
+
+            // 获取当前行中列表标记后面的文本内容
+            const currentLineText = lineContent.substring(lineStart, lineEnd);
+            const remainingText = currentLineText.substring(2); // 移除 "- " 部分
+
+            // 清除当前行，准备转换为无序列表
+            const beforeLine =
+                lineStart > 0 ? lineContent.substring(0, lineStart) : "";
+            const afterLine =
+                lineEnd < lineContent.length
+                    ? lineContent.substring(lineEnd)
+                    : "";
+            blockElement.textContent = beforeLine + afterLine;
+
+            // 创建无序列表
+            const ulElement = document.createElement("ul");
+            ulElement.setAttribute("data-block", "0");
+
+            // 创建列表项
+            const liElement = document.createElement("li");
+
+            // 插入一个标记，以便在转换后定位光标
+            liElement.appendChild(document.createElement("wbr"));
+
+            // 添加原有文本到列表项
+            if (remainingText) {
+                liElement.appendChild(document.createTextNode(remainingText));
+            }
+
+            // 添加列表项到无序列表
+            ulElement.appendChild(liElement);
+
+            // 添加无序列表到当前块的前面
+            blockElement.insertAdjacentElement("beforebegin", ulElement);
+
+            // 删除原始块
+            blockElement.remove();
+
+            // 设置光标位置
+            setRangeByWbr(vditor.ir.element, range);
+
+            // 处理渲染后的事件
+            processAfterRender(vditor, {
+                enableAddUndoStack: true,
+                enableHint: true,
+                enableInput: true,
+            });
+
+            return;
         }
 
         // 处理任务列表格式
